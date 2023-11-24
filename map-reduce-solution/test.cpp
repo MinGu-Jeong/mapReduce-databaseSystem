@@ -57,13 +57,19 @@ int splitFile(const string &filename)
     ifstream file(filename);
     string line, paragraph;
     int fileCount = 0;
+    int paragraphCount = 0;
     while (getline(file, line))
     {
         if (line.empty())
         { // 문단이 끝났다고 가정
-            ofstream out("part" + to_string(++fileCount) + ".txt");
-            out << paragraph;
-            paragraph.clear();
+            paragraphCount++;
+            if (paragraphCount == 1540) // n개 문단마다 파일을 분할
+            {
+                ofstream out("part" + to_string(++fileCount) + ".txt");
+                out << paragraph;
+                paragraph.clear();
+                paragraphCount = 0;
+            }
         }
         else
         {
