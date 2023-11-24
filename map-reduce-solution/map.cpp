@@ -25,15 +25,6 @@ vector<Pair> mapFunction(const string& text) {
     return pairs;
 }
 
-// Reduce 함수: 같은 키를 가진 value들을 병합
-map<string, int> reduce(const vector<Pair>& pairs) {
-    map<string, int> reducedData;
-    for (const auto& pair : pairs) {
-        reducedData[pair.key] += pair.value;
-    }
-    return reducedData;
-}
-
 int main() {
     // 텍스트 파일 읽기
     ifstream file("text.txt");
@@ -42,17 +33,9 @@ int main() {
     // mapFunction 함수 실행
     vector<Pair> pairs = mapFunction(text);
 
-    // Key 별로 Sorting (Map과 Reduce 간)
-    sort(pairs.begin(), pairs.end(), [](const Pair& a, const Pair& b) {
-        return a.key < b.key;
-        });
-
-    // Reduce 함수 실행
-    map<string, int> reducedData = reduce(pairs);
-
     // 결과 출력
-    for (const auto& pair : reducedData) {
-        cout << pair.first << ": " << pair.second << "\n";
+    for (const auto& pair : pairs) {
+        cout << pair.key << ": " << pair.value << "\n";
     }
 
     return 0;
