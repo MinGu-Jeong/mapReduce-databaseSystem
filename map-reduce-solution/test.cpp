@@ -89,8 +89,8 @@ int main()
     mutex outputMutex;
     map<string, int> finalResult;
 
-    // 예시: 파일을 3개로 분할했다고 가정
-    const int numberOfParts = 3; // 실제 분할된 파일 수에 맞춰 조정
+    // 예시: 파일을 6개로 분할했다고 가정
+    const int numberOfParts = 6; // 실제 분할된 파일 수에 맞춰 조정
     for (int i = 1; i <= numberOfParts; ++i)
     {
         threads.push_back(thread(processFilePart, "part" + to_string(i) + ".txt", ref(outputMutex), ref(finalResult)));
