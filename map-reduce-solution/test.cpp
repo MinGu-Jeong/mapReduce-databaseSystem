@@ -8,52 +8,61 @@
 
 using namespace std;
 
-// Key-Value ½ÖÀ» ÀúÀåÇÏ´Â ±¸Á¶Ã¼
-struct Pair {
+// Key-Value ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼
+struct Pair
+{
     string key;
     int value;
 };
 
-// mapFunction ÇÔ¼ö: °¢ ´Ü¾î¸¦ Å°·Î ÇÏ°í, °ªÀ» 1·Î ÇÏ´Â Pair °´Ã¼¸¦ »ý¼º
-vector<Pair> mapFunction(const string& text) {
+// mapFunction ï¿½Ô¼ï¿½: ï¿½ï¿½ ï¿½Ü¾î¸¦ Å°ï¿½ï¿½ ï¿½Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ï´ï¿½ Pair ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+vector<Pair> mapFunction(const string &text)
+{
     vector<Pair> pairs;
     stringstream ss(text);
     string word;
-    while (ss >> word) {
-        pairs.push_back({ word, 1 });
+    while (ss >> word)
+    {
+        pairs.push_back({word, 1});
     }
     return pairs;
 }
 
-// Reduce ÇÔ¼ö: °°Àº Å°¸¦ °¡Áø valueµéÀ» º´ÇÕ
-map<string, int> reduce(const vector<Pair>& pairs) {
+// Reduce ï¿½Ô¼ï¿½: ï¿½ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ valueï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+map<string, int> reduce(const vector<Pair> &pairs)
+{
     map<string, int> reducedData;
-    for (const auto& pair : pairs) {
+    for (const auto &pair : pairs)
+    {
         reducedData[pair.key] += pair.value;
     }
     return reducedData;
 }
 
-int main() {
-    // ÅØ½ºÆ® ÆÄÀÏ ÀÐ±â
+int main()
+{
+    // ï¿½Ø½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ð±ï¿½
     ifstream file("text.txt");
     string text((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
-    // mapFunction ÇÔ¼ö ½ÇÇà
+    // mapFunction ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+    auto start_time = chrono::high_resolution_clock::now();
     vector<Pair> pairs = mapFunction(text);
 
-    // Key º°·Î Sorting (Map°ú Reduce °£)
-    sort(pairs.begin(), pairs.end(), [](const Pair& a, const Pair& b) {
-        return a.key < b.key;
-        });
+    // Key ï¿½ï¿½ï¿½ï¿½ Sorting (Mapï¿½ï¿½ Reduce ï¿½ï¿½)
+    sort(pairs.begin(), pairs.end(), [](const Pair &a, const Pair &b)
+         { return a.key < b.key; });
 
-    // Reduce ÇÔ¼ö ½ÇÇà
+    // Reduce ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
     map<string, int> reducedData = reduce(pairs);
+    auto end_time = chrono::high_resolution_clock::now();
 
-    // °á°ú Ãâ·Â
-    for (const auto& pair : reducedData) {
+    // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+    for (const auto &pair : reducedData)
+    {
         cout << pair.first << ": " << pair.second << "\n";
     }
-
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
+    cout << "Execution time: " << duration << " ms\n";
     return 0;
 }
