@@ -1,0 +1,6 @@
+Hello, my name is John Doe.
+I am a software engineer.
+I live in San Francisco.
+I love programming.
+Programming is fun.
+Hello again, this is John Doe.
