@@ -83,6 +83,7 @@ int splitFile(const string &filename)
 
 int main()
 {
+    auto start_time = chrono::high_resolution_clock::now();
     int fileCount = splitFile("text.txt");
 
     vector<thread> threads;
@@ -110,6 +111,7 @@ int main()
         }
     }
 
+    auto end_time = chrono::high_resolution_clock::now();
     // Sort and Reduce (sort는 map<string, int>에 내장되어 있으므로 필요 없음)
 
     // 최종 결과 출력
@@ -118,5 +120,7 @@ int main()
         cout << pair.first << ": " << pair.second << '\n';
     }
 
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
+    cout << "Execution time: " << duration << " ms\n";
     return 0;
 }
