@@ -54,7 +54,7 @@ void processFilePart(const string &filename, mutex &outputMutex, map<string, int
     }
 }
 
-void splitFile(const string &filename)
+int splitFile(const string &filename)
 {
     ifstream file(filename);
     string line, paragraph;
@@ -79,18 +79,19 @@ void splitFile(const string &filename)
         ofstream out("part" + to_string(++fileCount) + ".txt");
         out << paragraph;
     }
+
+    return fileCount;
 }
 
 int main()
 {
-    splitFile("text.txt"); // 파일 분할
+    int fileCount = splitFile("text.txt"); // 파일 분할
 
     vector<thread> threads;
     mutex outputMutex;
     map<string, int> finalResult;
 
-    // 예시: 파일을 3개로 분할했다고 가정
-    const int numberOfParts = 3; // 실제 분할된 파일 수에 맞춰 조정
+    const int numberOfParts = fileCount; // 실제 분할된 파일 수에 맞춰 조정
     for (int i = 1; i <= numberOfParts; ++i)
     {
         threads.push_back(thread(processFilePart, "part" + to_string(i) + ".txt", ref(outputMutex), ref(finalResult)));
