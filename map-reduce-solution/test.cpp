@@ -38,19 +38,17 @@ map<string, int> reduce(const vector<Pair> &pairs)
     return reducedData;
 }
 
-void processFilePart(const string &filename, mutex &outputMutex, map<string, int> &finalResult)
+void processFilePart(const string &filename, int partNumber)
 {
     ifstream file(filename);
     string text((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
     vector<Pair> pairs = mapFunction(text);
-    sort(pairs.begin(), pairs.end(), [](const Pair &a, const Pair &b)
-         { return a.key < b.key; });
-    map<string, int> reducedData = reduce(pairs);
 
-    lock_guard<mutex> lock(outputMutex);
-    for (const auto &pair : reducedData)
+    // 결과를 로컬 파일에 저장
+    ofstream outputFile("localResult" + to_string(partNumber) + ".txt");
+    for (const auto &pair : pairs)
     {
-        finalResult[pair.first] += pair.second;
+        outputFile << pair.key << " " << pair.value << '\n';
     }
 }
 
@@ -85,22 +83,34 @@ int splitFile(const string &filename)
 
 int main()
 {
-    int fileCount = splitFile("text.txt"); // 파일 분할
+    int fileCount = splitFile("text.txt");
 
     vector<thread> threads;
-    mutex outputMutex;
-    map<string, int> finalResult;
 
-    const int numberOfParts = fileCount; // 실제 분할된 파일 수에 맞춰 조정
-    for (int i = 1; i <= numberOfParts; ++i)
+    for (int i = 1; i <= fileCount; ++i)
     {
-        threads.push_back(thread(processFilePart, "part" + to_string(i) + ".txt", ref(outputMutex), ref(finalResult)));
+        threads.push_back(thread(processFilePart, "part" + to_string(i) + ".txt", i));
     }
 
     for (auto &t : threads)
     {
         t.join();
     }
+
+    // 여기에서 모든 로컬 결과 파일을 병합, 정렬 및 reduce 처리
+    map<string, int> finalResult;
+    for (int i = 1; i <= fileCount; ++i)
+    {
+        ifstream localFile("localResult" + to_string(i) + ".txt");
+        string key;
+        int value;
+        while (localFile >> key >> value)
+        {
+            finalResult[key] += value;
+        }
+    }
+
+    // Sort and Reduce (sort는 map<string, int>에 내장되어 있으므로 필요 없음)
 
     // 최종 결과 출력
     for (const auto &pair : finalResult)
