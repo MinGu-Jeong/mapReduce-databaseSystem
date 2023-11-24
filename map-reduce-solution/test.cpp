@@ -5,54 +5,106 @@
 #include <map>
 #include <sstream>
 #include <algorithm>
+#include <thread>
+#include <mutex>
 
 using namespace std;
 
-// Key-Value ½ÖÀ» ÀúÀåÇÏ´Â ±¸Á¶Ã¼
-struct Pair {
+struct Pair
+{
     string key;
     int value;
 };
 
-// mapFunction ÇÔ¼ö: °¢ ´Ü¾î¸¦ Å°·Î ÇÏ°í, °ªÀ» 1·Î ÇÏ´Â Pair °´Ã¼¸¦ »ı¼º
-vector<Pair> mapFunction(const string& text) {
+vector<Pair> mapFunction(const string &text)
+{
     vector<Pair> pairs;
     stringstream ss(text);
     string word;
-    while (ss >> word) {
-        pairs.push_back({ word, 1 });
+    while (ss >> word)
+    {
+        pairs.push_back({word, 1});
     }
     return pairs;
 }
 
-// Reduce ÇÔ¼ö: °°Àº Å°¸¦ °¡Áø valueµéÀ» º´ÇÕ
-map<string, int> reduce(const vector<Pair>& pairs) {
+map<string, int> reduce(const vector<Pair> &pairs)
+{
     map<string, int> reducedData;
-    for (const auto& pair : pairs) {
+    for (const auto &pair : pairs)
+    {
         reducedData[pair.key] += pair.value;
     }
     return reducedData;
 }
 
-int main() {
-    // ÅØ½ºÆ® ÆÄÀÏ ÀĞ±â
-    ifstream file("text.txt");
+void processFilePart(const string &filename, mutex &outputMutex, map<string, int> &finalResult)
+{
+    ifstream file(filename);
     string text((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-
-    // mapFunction ÇÔ¼ö ½ÇÇà
     vector<Pair> pairs = mapFunction(text);
-
-    // Key º°·Î Sorting (Map°ú Reduce °£)
-    sort(pairs.begin(), pairs.end(), [](const Pair& a, const Pair& b) {
-        return a.key < b.key;
-        });
-
-    // Reduce ÇÔ¼ö ½ÇÇà
+    sort(pairs.begin(), pairs.end(), [](const Pair &a, const Pair &b)
+         { return a.key < b.key; });
     map<string, int> reducedData = reduce(pairs);
 
-    // °á°ú Ãâ·Â
-    for (const auto& pair : reducedData) {
-        cout << pair.first << ": " << pair.second << "\n";
+    lock_guard<mutex> lock(outputMutex);
+    for (const auto &pair : reducedData)
+    {
+        finalResult[pair.first] += pair.second;
+    }
+}
+
+void splitFile(const string &filename)
+{
+    ifstream file(filename);
+    string line, paragraph;
+    int fileCount = 0;
+    while (getline(file, line))
+    {
+        if (line.empty())
+        { // ë¬¸ë‹¨ì´ ëë‚¬ë‹¤ê³  ê°€ì •
+            ofstream out("part" + to_string(++fileCount) + ".txt");
+            out << paragraph;
+            paragraph.clear();
+        }
+        else
+        {
+            paragraph += line + "\n";
+        }
+    }
+
+    // ë§ˆì§€ë§‰ ë¬¸ë‹¨ ì²˜ë¦¬
+    if (!paragraph.empty())
+    {
+        ofstream out("part" + to_string(++fileCount) + ".txt");
+        out << paragraph;
+    }
+}
+
+int main()
+{
+    splitFile("text.txt"); // íŒŒì¼ ë¶„í• 
+
+    vector<thread> threads;
+    mutex outputMutex;
+    map<string, int> finalResult;
+
+    // ì˜ˆì‹œ: íŒŒì¼ì„ 3ê°œë¡œ ë¶„í• í–ˆë‹¤ê³  ê°€ì •
+    const int numberOfParts = 3; // ì‹¤ì œ ë¶„í• ëœ íŒŒì¼ ìˆ˜ì— ë§ì¶° ì¡°ì •
+    for (int i = 1; i <= numberOfParts; ++i)
+    {
+        threads.push_back(thread(processFilePart, "part" + to_string(i) + ".txt", ref(outputMutex), ref(finalResult)));
+    }
+
+    for (auto &t : threads)
+    {
+        t.join();
+    }
+
+    // ìµœì¢… ê²°ê³¼ ì¶œë ¥
+    for (const auto &pair : finalResult)
+    {
+        cout << pair.first << ": " << pair.second << '\n';
     }
 
     return 0;
