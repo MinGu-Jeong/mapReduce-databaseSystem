@@ -28,15 +28,21 @@ vector<Pair> mapFunction(const string& text)
     return pairs;
 }
 
-int reduce(const vector<int>& values)
+map<string, int> reduce(const map<string, vector<int>>& mergedData)
 {
-    int sum = 0;
-    for (const auto& value : values)
+    map<string, int> finalResult;
+    for (const auto& it : mergedData)
     {
-        sum += value;
+        int sum = 0;
+        for (const auto& value : it.second)
+        {
+            sum += value;
+        }
+        finalResult[it.first] = sum;
     }
-    return sum;
+    return finalResult;
 }
+
 
 void processFilePart(const string& filename, int partNumber)
 {
@@ -87,24 +93,8 @@ int splitFile(const string& filename)
     return fileCount;
 }
 
-int main()
+map<string, vector<int>> mergeSort(int fileCount)
 {
-    auto start_time = chrono::high_resolution_clock::now();
-    int fileCount = splitFile("text.txt");
-
-    vector<thread> threads;
-
-    for (int i = 1; i <= fileCount; ++i)
-    {
-        threads.push_back(thread(processFilePart, "part" + to_string(i) + ".txt", i));
-    }
-
-    for (auto& t : threads)
-    {
-        t.join();
-    }
-
-    // 모든 로컬 결과 파일을 병합
     map<string, vector<int>> mergedData;
     for (int i = 1; i <= fileCount; ++i)
     {
@@ -133,20 +123,33 @@ int main()
         mergeFile << "]" << endl;
     }
 
-    // 여기에서 병합된 데이터를 reduce 처리
-    map<string, int> finalResult;
-    for (const auto& it : mergedData)
+    return mergedData;
+}
+
+int main()
+{
+    auto start_time = chrono::high_resolution_clock::now();
+    int fileCount = splitFile("text.txt");
+
+    vector<thread> threads;
+
+    for (int i = 1; i <= fileCount; ++i)
     {
-        finalResult[it.first] = reduce(it.second);
+        threads.push_back(thread(processFilePart, "part" + to_string(i) + ".txt", i));
     }
+
+    for (auto& t : threads)
+    {
+        t.join();
+    }
+
+    // 모든 로컬 결과 파일을 병합, mergeSort
+    map<string, vector<int>> mergedData = mergeSort(fileCount);
+
+    // 병합된 데이터를 reduce 처리
+    map<string, int> finalResult = reduce(mergedData);
 
     auto end_time = chrono::high_resolution_clock::now();
-
-    // 최종 결과 출력
-    for (const auto& pair : finalResult)
-    {
-        cout << pair.first << ": " << pair.second << endl;
-    }
 
     auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
     cout << "Execution time: " << duration << " ms" << endl;
