@@ -104,8 +104,8 @@ int main()
         t.join();
     }
 
-    // 여기에서 모든 로컬 결과 파일을 병합, 정렬 및 reduce 처리
-    map<string, int> finalResult;
+    // 모든 로컬 결과 파일을 병합
+    multimap<string, int> mergedData;
     for (int i = 1; i <= fileCount; ++i)
     {
         ifstream localFile("localResult" + to_string(i) + ".txt");
@@ -113,7 +113,24 @@ int main()
         int value;
         while (localFile >> key >> value)
         {
-            finalResult[key] += value;
+            mergedData.insert({ key, value });
+        }
+    }
+
+    // 여기에서 병합된 데이터를 reduce 처리
+    map<string, int> finalResult;
+    for (auto it = mergedData.begin(), end = mergedData.end(); it != end; it = mergedData.upper_bound(it->first))
+    {
+        auto range = mergedData.equal_range(it->first);
+        vector<Pair> pairs;
+        for (auto i = range.first; i != range.second; ++i)
+        {
+            pairs.push_back({ i->first, i->second });
+        }
+        map<string, int> reducedData = reduce(pairs);
+        for (const auto& pair : reducedData)
+        {
+            finalResult[pair.first] += pair.second;
         }
     }
 
