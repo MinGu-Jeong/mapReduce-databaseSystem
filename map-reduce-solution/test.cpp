@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -7,8 +8,10 @@
 #include <algorithm>
 #include <thread>
 #include <mutex>
+#include <cstdio>
 
 using namespace std;
+
 
 struct Pair {
     string key;
@@ -55,25 +58,49 @@ int splitFile(const string& filename) {
     string line, paragraph;
     int fileCount = 0;
     int paragraphCount = 0;
-    while (getline(file, line)) {
-        if (line.empty()) {
-            paragraphCount++;
-            if (paragraphCount == 1540) {
-                ofstream out("part" + to_string(++fileCount) + ".txt");
-                out << paragraph;
-                paragraph.clear();
-                paragraphCount = 0;
-            }
+    FILE* size = fopen(filename.c_str(), "rb");
+    long filesize = 0;
+    if (size != nullptr) {
+        // 파일 포인터를 파일 끝으로 이동하여 크기 구하기
+        std::fseek(size, 0, SEEK_END);
+        filesize = std::ftell(size);
+
+        std::fclose(size);
+
+        if (filesize != -1) {
+            std::cout << "File size: " << filesize << " bytes" << std::endl;
         }
         else {
-            paragraph += line + "\n";
+            std::cerr << "Error getting file size." << std::endl;
         }
     }
-
-    if (!paragraph.empty()) {
-        ofstream out("part" + to_string(++fileCount) + ".txt");
-        out << paragraph;
+    else {
+        std::cerr << "Error opening file." << std::endl;
     }
+
+    // 파일을 4개로 나누어 새로운 파일 생성
+    ifstream inputFile(filename);
+
+    long chunkSize = filesize / 4; // 4개로 등분
+
+    for (int i = 0; i < 4; ++i) {
+        fileCount++;
+        ofstream out("part" + to_string(fileCount) + ".txt");
+
+        long bytesRead = 0;
+        while (getline(inputFile, line)) {
+            bytesRead += line.length() + 1; // 길이와 개행 문자에 대한 공간
+            paragraph += line + "\n";
+
+            if (bytesRead >= chunkSize)
+                break;
+        }
+
+        out << paragraph;
+        paragraph.clear();
+    }
+
+    inputFile.close();
 
     return fileCount;
 }
