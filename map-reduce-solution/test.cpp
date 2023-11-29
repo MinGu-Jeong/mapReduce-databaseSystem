@@ -89,7 +89,7 @@ void processFilePart(const string &filename, int partNumber)
 }
 
 // 파일을 문단 수로 분할하는 함수
-int splitFileByParagraphs(const string& filename, int numParagraphs)
+int splitFileByParagraphs(const string &filename, int numParagraphs)
 {
     ifstream file(filename);
     string line, paragraph;
@@ -125,7 +125,7 @@ int splitFileByParagraphs(const string& filename, int numParagraphs)
 }
 
 // 파일을 스레드 개수로 분할하는 함수
-int splitFileByThreads(const string& filename, int threadCount)
+int splitFileByThreads(const string &filename, int threadCount)
 {
     ifstream file(filename);
     file.seekg(0, ios::end);
@@ -141,7 +141,7 @@ int splitFileByThreads(const string& filename, int threadCount)
     int partitionCount = 0;
     while (getline(file, line))
     {
-        line += "";  // 개행 문자 추가
+        line += ""; // 개행 문자 추가
         partitionCount += line.size();
         partition += line;
 
@@ -188,8 +188,6 @@ int splitFileByThreads(const string& filename, int threadCount)
     return partNumber - 1;
 }
 
-
-
 map<string, vector<int>> mergeSort(int fileCount)
 {
     map<string, vector<int>> mergedData;
@@ -226,7 +224,6 @@ map<string, vector<int>> mergeSort(int fileCount)
 int main()
 {
     auto start_time = chrono::high_resolution_clock::now();
-
 
     int option;
     cout << "파일 분할 방식을 선택해주세요. (1: 문단 수 기준, 2: 스레드(파일 크기) 기준): ";
