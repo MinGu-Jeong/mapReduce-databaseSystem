@@ -58,39 +58,34 @@ void processFilePart(const string& filename, int partNumber)
     }
 }
 
-int splitFile(const string& filename)
+int splitFile(const string& filename, streamsize partSize)
 {
-    ifstream file(filename);
-    string line, paragraph;
-    int fileCount = 0;
-    int paragraphCount = 0;
-    while (getline(file, line))
+    ifstream file(filename, ios::binary | ios::ate);
+    const auto fileSize = file.tellg();
+    file.seekg(0);
+
+    int partNumber = 0;
+    string partFileName;
+    for (streamoff i = 0; i < fileSize; i += partSize)
     {
-        if (line.empty())
-        { // 문단이 끝났다고 가정
-            paragraphCount++;
-            if (paragraphCount == 1540) // n개 문단마다 파일을 분할
-            {
-                ofstream out("part" + to_string(++fileCount) + ".txt");
-                out << paragraph;
-                paragraph.clear();
-                paragraphCount = 0;
-            }
+        partFileName = "part" + to_string(partNumber++) + ".txt";
+        ofstream partFile(partFileName, ios::binary);
+
+        if (i + partSize < fileSize)
+        {
+            vector<char> buffer(partSize);
+            file.read(buffer.data(), partSize);
+            partFile.write(buffer.data(), partSize);
         }
         else
         {
-            paragraph += line + "";
+            // 마지막 부분 파일의 크기가 partSize보다 작을 수 있음
+            vector<char> buffer(fileSize - i);
+            file.read(buffer.data(), fileSize - i);
+            partFile.write(buffer.data(), fileSize - i);
         }
     }
-
-    // 마지막 문단 처리
-    if (!paragraph.empty())
-    {
-        ofstream out("part" + to_string(++fileCount) + ".txt");
-        out << paragraph;
-    }
-
-    return fileCount;
+    return partNumber;
 }
 
 map<string, vector<int>> mergeSort(int fileCount)
@@ -129,7 +124,7 @@ map<string, vector<int>> mergeSort(int fileCount)
 int main()
 {
     auto start_time = chrono::high_resolution_clock::now();
-    int fileCount = splitFile("text.txt");
+    int fileCount = splitFile("text.txt", 1024 * 1024);  // 파일을 1MB 크기로 분할
 
     vector<thread> threads;
 
