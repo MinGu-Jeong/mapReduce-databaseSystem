@@ -88,39 +88,63 @@ void processFilePart(const string &filename, int partNumber)
     }
 }
 
-int splitFile(const string &filename)
+// 파일을 스레드 개수로 분할하는 함수
+int splitFile(const string& filename, int threadCount)
 {
     ifstream file(filename);
-    string line, paragraph;
-    int fileCount = 0;
-    int paragraphCount = 0;
+    file.seekg(0, ios::end);
+    int fileSize = file.tellg();
+    file.seekg(0, ios::beg);
+
+    // 각 파티션의 크기 계산 (파일 크기를 스레드 개수로 나눔)
+    int partitionSize = fileSize / threadCount;
+
+    int partNumber = 0;
+    string partFileName;
+    string line, partition;
+    int partitionCount = 0;
     while (getline(file, line))
     {
-        if (line.empty())
-        { // 문단이 끝났다고 가정
-            paragraphCount++;
-            if (paragraphCount == 1540) // n개 문단마다 파일을 분할
-            {
-                ofstream out("part" + to_string(++fileCount) + ".txt");
-                out << paragraph;
-                paragraph.clear();
-                paragraphCount = 0;
-            }
-        }
-        else
+        partition += line + "";
+        ++partitionCount;
+
+        // 파티션 크기가 계산된 크기를 넘으면 파일에 쓰고 초기화
+        if (partitionCount >= partitionSize)
         {
-            paragraph += line + "";
+            // 마지막 단어를 다음 파티션으로 넘기기
+            size_t lastSpacePos = partition.find_last_of(' ');
+            if (lastSpacePos != string::npos)
+            {
+                string lastWord = partition.substr(lastSpacePos + 1);
+                partition.erase(lastSpacePos);
+
+                partFileName = "part" + to_string(partNumber++) + ".txt";
+                ofstream partFile(partFileName);
+                partFile << partition;
+
+                // 다음 파티션의 시작에 마지막 단어 추가
+                partition = lastWord;
+            }
+            else
+            {
+                partFileName = "part" + to_string(partNumber++) + ".txt";
+                ofstream partFile(partFileName);
+                partFile << partition;
+                partition.clear();
+            }
+            partitionCount = 0;
         }
     }
 
-    // 마지막 문단 처리
-    if (!paragraph.empty())
+    // 마지막 파티션 처리
+    if (!partition.empty())
     {
-        ofstream out("part" + to_string(++fileCount) + ".txt");
-        out << paragraph;
+        partFileName = "part" + to_string(partNumber++) + ".txt";
+        ofstream partFile(partFileName);
+        partFile << partition;
     }
 
-    return fileCount;
+    return partNumber;
 }
 
 map<string, vector<int>> mergeSort(int fileCount)
@@ -161,7 +185,7 @@ int main()
     auto start_time = chrono::high_resolution_clock::now();
 
     // 파일 분할
-    int fileCount = splitFile("text.txt");
+    int fileCount = splitFile("text.txt", 4);
 
     // 각 파일 파트 처리
     vector<thread> threads;
