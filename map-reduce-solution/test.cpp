@@ -99,14 +99,15 @@ int splitFile(const string& filename, int threadCount)
     // 각 파티션의 크기 계산 (파일 크기를 스레드 개수로 나눔)
     int partitionSize = fileSize / threadCount;
 
-    int partNumber = 0;
+    int partNumber = 1;
     string partFileName;
     string line, partition;
     int partitionCount = 0;
     while (getline(file, line))
     {
-        partition += line + "";
-        ++partitionCount;
+        line += "";  // 개행 문자 추가
+            partitionCount += line.size();
+        partition += line;
 
         // 파티션 크기가 계산된 크기를 넘으면 파일에 쓰고 초기화
         if (partitionCount >= partitionSize)
@@ -121,18 +122,21 @@ int splitFile(const string& filename, int threadCount)
                 partFileName = "part" + to_string(partNumber++) + ".txt";
                 ofstream partFile(partFileName);
                 partFile << partition;
+                partFile.close();
 
                 // 다음 파티션의 시작에 마지막 단어 추가
                 partition = lastWord;
+                partitionCount = lastWord.size();
             }
             else
             {
                 partFileName = "part" + to_string(partNumber++) + ".txt";
                 ofstream partFile(partFileName);
                 partFile << partition;
+                partFile.close();
                 partition.clear();
+                partitionCount = 0;
             }
-            partitionCount = 0;
         }
     }
 
@@ -142,10 +146,12 @@ int splitFile(const string& filename, int threadCount)
         partFileName = "part" + to_string(partNumber++) + ".txt";
         ofstream partFile(partFileName);
         partFile << partition;
+        partFile.close();
     }
 
-    return partNumber;
+    return partNumber - 1;
 }
+
 
 map<string, vector<int>> mergeSort(int fileCount)
 {
