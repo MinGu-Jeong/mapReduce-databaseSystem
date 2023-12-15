@@ -12,8 +12,8 @@ using namespace std;
 
 struct Pair
 {
-    string key;
-    int value;
+    string key; // 단어 또는 문장 등의 식별자
+    int value; // 해당 단어 또는 문장이 나타난 횟수
 };
 
 class Map
@@ -26,7 +26,7 @@ public:
         string word;
         while (ss >> word)
         {
-            pairs.push_back({word, 1});
+            pairs.push_back({word, 1}); // 단어를 Pair 구조체에 추가
         }
         return pairs;
     }
@@ -40,53 +40,51 @@ public:
         int sum = 0;
         for (const auto &value : values)
         {
-            sum += value;
+            sum += value;  // 값들의 합을 계산
         }
         return sum;
     }
 };
 
-vector<Pair> mapFunction(const string &text)
+// 각 단어별로 나타난 빈도수를 합산하여 최종 결과를 생성하는 함수
+map<string, int> reduce(const map<string, vector<int>>& mergedData)
 {
-    vector<Pair> pairs;
-    stringstream ss(text);
-    string word;
-    while (ss >> word)
-    {
-        pairs.push_back({word, 1});
-    }
-    return pairs;
-}
+    map<string, int> finalResult;  // 최종 결과를 저장할 맵
 
-map<string, int> reduce(const map<string, vector<int>> &mergedData)
-{
-    map<string, int> finalResult;
-    for (const auto &it : mergedData)
+    // mergedData는 단어를 키로, 해당 단어의 빈도수 벡터를 값으로 가짐
+    for (const auto& it : mergedData)
     {
         int sum = 0;
-        for (const auto &value : it.second)
+
+        // 해당 단어의 빈도수 벡터를 순회하며 빈도수를 합산
+        for (const auto& value : it.second)
         {
-            sum += value;
+            sum += value;  // 값들의 합을 계산
         }
+
+        // 최종 결과 맵에 단어와 빈도수의 합을 저장
         finalResult[it.first] = sum;
     }
-    return finalResult;
+
+    return finalResult;  // 최종 결과 맵 반환
 }
 
-void processFilePart(const string &filename, int partNumber)
+// 파일의 일부를 처리하는 함수
+void processFilePart(const string& filename, int partNumber)
 {
-    ifstream file(filename);
-    string text((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+    ifstream file(filename);  // 파일 열기
+    string text((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());  // 파일 내용을 문자열로 읽기
 
-    Map mapper;
-    vector<Pair> pairs = mapper.mapFunction(text);
+    Map mapper;  // Map 클래스의 인스턴스 생성
+    vector<Pair> pairs = mapper.mapFunction(text);  // Map 함수를 사용하여 단어와 빈도수의 쌍을 얻음
 
-    ofstream outputFile("localResult" + to_string(partNumber) + ".txt");
-    for (const auto &pair : pairs)
+    ofstream outputFile("localResult" + to_string(partNumber) + ".txt");  // 출력 파일 열기
+    for (const auto& pair : pairs)
     {
-        outputFile << pair.key << " " << pair.value << '\n';
+        outputFile << pair.key << " " << pair.value << '\n';  // 결과 파일에 단어와 빈도수 쓰기
     }
 }
+
 
 // 파일을 문단 수로 분할하는 함수
 int splitFileByParagraphs(const string &filename, int numParagraphs)
@@ -110,7 +108,7 @@ int splitFileByParagraphs(const string &filename, int numParagraphs)
         }
         else
         {
-            paragraph += line + "";
+            paragraph += line + ""; // 문단에 줄 추가
         }
     }
 
@@ -124,24 +122,26 @@ int splitFileByParagraphs(const string &filename, int numParagraphs)
     return fileCount;
 }
 
-// 파일을 스레드 개수로 분할하는 함수
-int splitFileByThreads(const string &filename, int threadCount)
+// 파일을 지정된 스레드 개수로 분할하는 함수
+int splitFileByThreads(const string& filename, int threadCount)
 {
-    ifstream file(filename);
-    file.seekg(0, ios::end);
+    ifstream file(filename);  // 파일 열기
+    file.seekg(0, ios::end);  // 파일 끝으로 이동하여 파일 크기 구하기
     int fileSize = file.tellg();
-    file.seekg(0, ios::beg);
+    file.seekg(0, ios::beg);  // 파일 시작으로 이동
 
     // 각 파티션의 크기 계산 (파일 크기를 스레드 개수로 나눔)
     int partitionSize = fileSize / threadCount;
 
-    int partNumber = 1;
-    string partFileName;
-    string line, partition;
-    int partitionCount = 0;
+    int partNumber = 1;  // 파티션 번호 초기화
+    string partFileName;  // 파티션 파일 이름
+    string line, partition;  // 현재 처리중인 라인 및 현재 파티션에 대한 문자열
+    int partitionCount = 0;  // 현재 파티션의 크기
+
+    // 파일에서 라인을 읽어오면서 파티션 생성
     while (getline(file, line))
     {
-        line += ""; // 개행 문자 추가
+        line += "\n";  // 개행 문자 추가
         partitionCount += line.size();
         partition += line;
 
@@ -149,7 +149,7 @@ int splitFileByThreads(const string &filename, int threadCount)
         if (partitionCount >= partitionSize)
         {
             // 마지막 단어를 다음 파티션으로 넘기기
-            size_t lastSpacePos = partition.find_last_of(' ');
+            size_t lastSpacePos = partition.find_last_of('\n');
             if (lastSpacePos != string::npos)
             {
                 string lastWord = partition.substr(lastSpacePos + 1);
@@ -185,17 +185,23 @@ int splitFileByThreads(const string &filename, int threadCount)
         partFile.close();
     }
 
-    return partNumber - 1;
+    return partNumber - 1;  // 생성된 파티션의 개수 반환
 }
 
+
+// 생성된 로컬 결과 파일들을 병합하여 중간 결과를 반환하는 함수
 map<string, vector<int>> mergeSort(int fileCount)
 {
-    map<string, vector<int>> mergedData;
+    map<string, vector<int>> mergedData;  // 병합된 데이터를 저장할 맵
+
+    // 각 로컬 결과 파일에서 데이터를 읽어와서 병합
     for (int i = 1; i <= fileCount; ++i)
     {
-        ifstream localFile("localResult" + to_string(i) + ".txt");
+        ifstream localFile("localResult" + to_string(i) + ".txt");  // 로컬 결과 파일 열기
         string key;
         int value;
+
+        // 로컬 파일에서 단어와 빈도수를 읽어와서 맵에 추가
         while (localFile >> key >> value)
         {
             mergedData[key].push_back(value);
@@ -203,23 +209,26 @@ map<string, vector<int>> mergeSort(int fileCount)
     }
 
     // 중간 결과를 파일에 저장
-    ofstream mergeFile("mergeSort.txt");
-    for (const auto &pair : mergedData)
+    ofstream mergeFile("mergeSort.txt");  // 병합 결과를 저장할 파일 열기
+    for (const auto& pair : mergedData)
     {
-        mergeFile << pair.first << ": [";
+        mergeFile << pair.first << ": [";  // 단어 출력
+
+        // 해당 단어의 빈도수 벡터를 출력
         for (int i = 0; i < pair.second.size(); ++i)
         {
-            mergeFile << pair.second[i];
+            mergeFile << pair.second[i];  // 빈도수 출력
             if (i != pair.second.size() - 1)
             {
-                mergeFile << ",";
+                mergeFile << ",";  // 빈도수 간 구분자 출력
             }
         }
-        mergeFile << "]" << endl;
+        mergeFile << "]" << endl;  // 단어의 빈도수 출력 완료
     }
 
-    return mergedData;
+    return mergedData;  // 병합된 데이터 맵 반환
 }
+
 
 int main()
 {
