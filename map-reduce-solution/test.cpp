@@ -141,7 +141,7 @@ int splitFileByThreads(const string &filename, int threadCount)
     int partitionCount = 0;
     while (getline(file, line))
     {
-        line += ""; // 개행 문자 추가
+        line += "\n"; // 개행 문자 추가
         partitionCount += line.size();
         partition += line;
 
@@ -149,7 +149,7 @@ int splitFileByThreads(const string &filename, int threadCount)
         if (partitionCount >= partitionSize)
         {
             // 마지막 단어를 다음 파티션으로 넘기기
-            size_t lastSpacePos = partition.find_last_of(' ');
+            size_t lastSpacePos = partition.find_last_of('\n');
             if (lastSpacePos != string::npos)
             {
                 string lastWord = partition.substr(lastSpacePos + 1);
@@ -240,7 +240,7 @@ int main()
     else if (option == 2)
     {
         int numThreads;
-        cout << "파일을 분할할 스레드 수 입력 (4일때 가장 빠름): ";
+        cout << "파일을 분할할 스레드 수 입력: ";
         cin >> numThreads;
         fileCount = splitFileByThreads("text.txt", numThreads);
     }
