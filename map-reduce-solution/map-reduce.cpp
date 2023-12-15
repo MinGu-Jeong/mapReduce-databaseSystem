@@ -246,7 +246,7 @@ int main()
     else if (option == 2)
     {
         int numThreads;
-        cout << "파일을 분할할 스레드 수 입력 (4일때 가장 빠름): ";
+        cout << "파일을 분할할 스레드 수 입력: ";
         cin >> numThreads;
         fileCount = splitFileByThreads("text.txt", numThreads);
     }
