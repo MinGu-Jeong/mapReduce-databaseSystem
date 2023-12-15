@@ -19,14 +19,14 @@ struct Pair
 class Map
 {
 public:
-    vector<Pair> mapFunction(const string &text)
+    vector<Pair> mapFunction(const string& text)
     {
         vector<Pair> pairs;
         stringstream ss(text);
         string word;
         while (ss >> word)
         {
-            pairs.push_back({word, 1}); // 단어를 Pair 구조체에 추가
+            pairs.push_back({ word, 1 }); // 단어를 Pair 구조체에 추가
         }
         return pairs;
     }
@@ -35,10 +35,10 @@ public:
 class Reduce
 {
 public:
-    int reduceValues(const vector<int> &values)
+    int reduceValues(const vector<int>& values)
     {
         int sum = 0;
-        for (const auto &value : values)
+        for (const auto& value : values)
         {
             sum += value;  // 값들의 합을 계산
         }
@@ -87,7 +87,7 @@ void processFilePart(const string& filename, int partNumber)
 
 
 // 파일을 문단 수로 분할하는 함수
-int splitFileByParagraphs(const string &filename, int numParagraphs)
+int splitFileByParagraphs(const string& filename, int numParagraphs)
 {
     ifstream file(filename);
     string line, paragraph;
@@ -266,7 +266,7 @@ int main()
         threads.push_back(thread(processFilePart, "part" + to_string(i) + ".txt", i));
     }
 
-    for (auto &t : threads)
+    for (auto& t : threads)
     {
         t.join();
     }
@@ -277,7 +277,7 @@ int main()
     // 병합된 데이터를 reduce 처리
     Reduce reducer;
     map<string, int> finalResult;
-    for (const auto &it : mergedData)
+    for (const auto& it : mergedData)
     {
         finalResult[it.first] = reducer.reduceValues(it.second);
     }
@@ -286,7 +286,7 @@ int main()
 
     // 최종 결과 출력
     ofstream resultFile("result.txt");
-    for (const auto &pair : finalResult)
+    for (const auto& pair : finalResult)
     {
         resultFile << pair.first << ": " << pair.second << endl;
     }
