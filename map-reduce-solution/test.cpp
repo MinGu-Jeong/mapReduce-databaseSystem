@@ -97,7 +97,7 @@ int splitFileByParagraphs(const string &filename, int numParagraphs)
     int paragraphCount = 0;
     while (getline(file, line))
     {
-        if (line.empty())
+        if (line.empty() || line == "\r")
         { // 문단이 끝났다고 가정
             paragraphCount++;
             if (paragraphCount == numParagraphs) // 사용자 입력 문단마다 파일을 분할
