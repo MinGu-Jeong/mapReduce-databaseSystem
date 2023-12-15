@@ -271,7 +271,7 @@ int main()
         return 0;
     }
 
-    // 각 파일 파트 처리하기 위한 스레드 벡
+    // 각 파일 파트 처리하기 위한 스레드 벡터
     vector<thread> threads;
     for (int i = 1; i <= fileCount; ++i)
     {
